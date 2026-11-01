@@ -28,3 +28,8 @@ agensi_build/
 
 # Skill packaging scripts (Proprietary - Do not commit)
 scripts/
+
+# Commercial Agensi Files & Distribution
+agensi_packages/
+_agensi_commercial_dist/
+dist/*.zip
