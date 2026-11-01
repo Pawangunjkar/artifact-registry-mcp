@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Environments
+.venv/
+env/
+venv/
+.env
+
+# MCP Caches & Secrets
+.artifact-mcp-cache/
+credentials.json
+
+# Commercial Agensi Pro Skills (Proprietary - Do not commit)
+agensi_build/
+
+# IDEs
+.vscode/
+.idea/
+.cursor/mcp.json
+
+# Skill packaging scripts (Proprietary - Do not commit)
+scripts/
