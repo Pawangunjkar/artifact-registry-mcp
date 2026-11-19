@@ -482,6 +482,12 @@ async def artifact_cleanup_old_snapshots(
 # Entry Point
 # ============================================================
 
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(_request):
+    from starlette.responses import JSONResponse
+    return JSONResponse({"status": "healthy", "server": "artifact-registry-mcp"})
+
+
 def main() -> None:
     """Entry point for artifact-registry-mcp server."""
     import asyncio
@@ -494,7 +500,33 @@ def main() -> None:
     except Exception as exc:
         print(f"Notice: Autoconnect check skipped: {exc}", file=sys.stderr)
 
-    mcp.run(transport="stdio")
+    transport = os.environ.get("MCP_TRANSPORT", "").strip().lower()
+    if not transport:
+        if "--http" in sys.argv:
+            transport = "streamable-http"
+        elif os.environ.get("K_SERVICE"):
+            transport = "streamable-http"
+        else:
+            transport = "stdio"
+
+    if transport in ("http", "streamable-http", "sse"):
+        port = int(os.environ.get("PORT", "8080"))
+        host = os.environ.get("HOST", "0.0.0.0")
+        mcp.settings.host = host
+        mcp.settings.port = port
+        mcp.settings.stateless_http = True
+        mcp.settings.json_response = True
+        try:
+            from mcp.server.transport_security import TransportSecuritySettings
+            mcp.settings.transport_security = TransportSecuritySettings(
+                enable_dns_rebinding_protection=False,
+            )
+        except ImportError:
+            pass
+        resolved = "sse" if transport == "sse" else "streamable-http"
+        mcp.run(transport=resolved)
+    else:
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":

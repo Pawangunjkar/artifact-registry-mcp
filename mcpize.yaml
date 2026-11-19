@@ -1,0 +1,40 @@
+version: 1
+name: pawangunjkar-artifact-registry-mcp
+description: "Supply-chain Artifact Registry MCP server for Sonatype Nexus 3 and JFrog Artifactory with 12 tools: Maven/NPM/PyPI/Docker search, OCI image sha256 digest resolution, SHA256/SHA512 checksum attestation, binary upload, release promotion, and snapshot pruning."
+runtime: python
+entry: artifact_mcp/server.py
+
+startCommand:
+  type: http
+  command: python -m artifact_mcp.server --http
+
+credentials_mode: per_user
+credentials:
+  - name: ARTIFACT_REGISTRY_TYPE
+    description: "Registry backend type: 'nexus' (Sonatype Nexus 3) or 'artifactory' (JFrog Artifactory)."
+    required: true
+    placeholder: "nexus"
+  - name: ARTIFACT_REGISTRY_URL
+    description: "Base URL of your Nexus or Artifactory instance."
+    required: true
+    placeholder: "https://nexus.example.com"
+  - name: ARTIFACT_REGISTRY_USER
+    description: "Username or service account for registry authentication."
+    required: true
+    placeholder: "ci-publisher"
+  - name: ARTIFACT_REGISTRY_TOKEN
+    description: "Registry API token, password, or access token."
+    required: true
+    placeholder: "your-registry-token"
+  - name: ARTIFACT_REGISTRY_SSL_VERIFY
+    description: "Verify TLS certificates ('true' or 'false' for internal self-signed certs)."
+    required: false
+    placeholder: "true"
+  - name: ARTIFACT_REGISTRY_TIMEOUT
+    description: "HTTP request timeout in seconds (default: 30)."
+    required: false
+    placeholder: "30"
+  - name: ARTIFACT_MCP_CACHE_DIR
+    description: "Optional writable directory for local session credential cache."
+    required: false
+    placeholder: "/tmp/artifact-mcp-cache"

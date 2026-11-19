@@ -6,6 +6,20 @@ Production-grade MCP server supporting both **Sonatype Nexus Repository 3** and 
 
 ---
 
+## 🚀 Hosted Cloud (MCPize.com) & Pro Agent Skill Bundles (Agensi.io)
+
+Run locally over `stdio` or subscribe to managed cloud endpoints on **[MCPize.com](https://mcpize.com)** paired with production `SKILL.md` playbooks on **[Agensi.io](https://agensi.io)**:
+
+| Tier | Offering | Cloud Runtime ([MCPize.com](https://mcpize.com)) | Pro Playbook ([Agensi.io](https://agensi.io)) | What's Included |
+| :--- | :--- | :---: | :---: | :--- |
+| **Free Demo** | Starter Access | `$0` *(25 read-only calls/mo)* | `github-mcp-lite` (`$0`) | Free read-only trial tier |
+| **Individual Pro** *(This Repo)* | **`artifact-registry-mcp`** | **`$19/mo`** *(`pawangunjkar-artifact-registry-mcp`)* | `artifact-registry-mcp-pro` (`$19`) | All **12 Nexus 3 & Artifactory supply-chain tools** + 4 attestation playbooks |
+| **3-in-1 Bundle** | **Enterprise CI/CD & Binary Release** *(Saves 32%)* | **`$39/mo`** *(`pawangunjkar-bundle-enterprise-release-mcp`)* | Bundle 2 (`$39`) | `jenkins-mcp` (53) + `artifact-registry-mcp` (12) + `k8s-mcp` (23) = **88 tools** |
+| **3-in-1 Bundles** | **Cloud-Native DevOps** \| **SRE Incident Triage** | **`$39/mo`** each | Bundle 1 \| Bundle 3 (`$39`) | `github+k8s+obs` (118 tools) \| `k8s+obs+linux-ssh` (100 tools) |
+| **6-in-1 Master Suite** | **Enterprise SDLC Orchestrator** *(Saves 37%)* | **`$69/mo`** *(`pawangunjkar-enterprise-sdlc-suite`)* | `enterprise-sdlc-orchestrator` (`$69`) | **All 6 MCP servers unified (245 tools)** + end-to-end SDLC/SRE workflows |
+
+---
+
 ## Project Information
 
 | Item | Value |
