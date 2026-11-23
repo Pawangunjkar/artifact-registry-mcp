@@ -304,13 +304,16 @@ async def artifact_get_docker_image_tags_and_digests(
     image_name: str,
     limit: int = 20,
     session_name: str = "default",
+    tag: str = "",
+    registry_host: str = "",
 ) -> str:
     """
     Query Docker/OCI repositories to resolve an immutable sha256:... image digest.
 
-    Queries Docker v2 manifest endpoints and AQL in Nexus and Artifactory.
-    Produces an immutable image reference (image@sha256:...) and ready-to-run
-    tool arguments for k8s-mcp rollouts.
+    Queries Docker v2 manifest endpoints and AQL in Nexus and Artifactory. Tags are
+    listed newest first when the registry reports modification times; multi-arch
+    images resolve to their index digest. Produces an immutable image reference
+    (host/image@sha256:...) and a ready-to-run k8s_trigger_deployment_rollout call.
 
     **Purpose**: Bridge container registry images to Kubernetes deployments securely.
     **When to Use**: Right before calling k8s-mcp to deploy or update a container workload.
@@ -320,14 +323,19 @@ async def artifact_get_docker_image_tags_and_digests(
     Args:
         repository: Docker repository key/name in the registry (e.g. 'docker-local' or 'docker-hosted')
         image_name: Container image name (e.g. 'payment-service' or 'microservices/auth')
-        limit: Maximum number of tags to return (default: 20)
+        limit: Maximum number of tags to return (default: 20, max: 100)
         session_name: Session to query (default: 'default')
+        tag: Specific tag to resolve and hand off (empty = newest tag with a known timestamp)
+        registry_host: Docker registry host used in the image reference, e.g. 'docker.corp.com' or
+            'nexus.corp.com:8443' (empty = ARTIFACT_DOCKER_REGISTRY env var, else derived from base_url)
     """
     return await _client.get_docker_image_tags_and_digests(
         repository=repository,
         image_name=image_name,
         limit=limit,
         session_name=session_name,
+        tag=tag,
+        registry_host=registry_host,
     )
 
 
@@ -427,8 +435,9 @@ async def artifact_promote_release(
     Args:
         source_repo: Source repository key (e.g. 'dev-local', 'staging-repo')
         target_repo: Target release repository key (e.g. 'prod-release', 'maven-releases')
-        artifact_or_build_name: Name of the artifact or build component (e.g. 'cart-service')
-        version: Version string to promote (e.g. '1.5.0')
+        artifact_or_build_name: Component path inside the repository. Use the full Maven path for
+            Maven layouts (e.g. 'com/corp/cart-service'); a bare name works for flat layouts ('cart-service')
+        version: Exact version string to promote (e.g. '1.5.0'); no other version is copied
         confirm: Must be True to execute promotion (default: False)
         session_name: Session to use (default: 'default')
     """
