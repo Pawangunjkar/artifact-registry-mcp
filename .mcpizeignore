@@ -7,9 +7,6 @@ __pycache__
 .mypy_cache
 .ruff_cache
 agensi_build
-agensi_packages
-_agensi_commercial_dist
-_mcpize_bundles
 dist
 build
 scripts
@@ -17,7 +14,6 @@ tests
 .env
 .env.local
 .env.prod
-.mcpize
 .cursor
 .vscode
 .idea

@@ -1,61 +1,46 @@
 # Artifact Registry MCP Server
 
-Open-source Model Context Protocol (MCP) server owned by **Pawan Gunjkar** (`pawangunjkar@gmail.com` · [GitHub](https://github.com/Pawangunjkar)). MIT licensed.
+> A Python **Model Context Protocol (MCP)** server for **Sonatype Nexus Repository 3** and **JFrog Artifactory** — search binaries across Maven/Docker/npm/PyPI/Helm/raw repositories, resolve immutable OCI `sha256` digests, verify checksum integrity, and promote or prune releases with confirmation gates.
 
-Production-grade MCP server supporting both **Sonatype Nexus Repository 3** and **JFrog Artifactory**. Bridges CI/CD build pipelines ([github-mcp](https://github.com/Pawangunjkar/github-mcp) and [jenkins-mcp](https://github.com/Pawangunjkar/jenkins-mcp)) and Kubernetes/OpenShift deployment automation ([k8s-mcp](https://github.com/Pawangunjkar/k8s-mcp)).
-
----
-
-## 🚀 Hosted Cloud (MCPize.com) & Pro Agent Skill Bundles (Agensi.io)
-
-Run locally over `stdio` or subscribe to managed cloud endpoints on **[MCPize.com](https://mcpize.com)** paired with production `SKILL.md` playbooks on **[Agensi.io](https://agensi.io)**:
-
-| Tier | Offering | Cloud Runtime ([MCPize.com](https://mcpize.com)) | Pro Playbook ([Agensi.io](https://agensi.io)) | What's Included |
-| :--- | :--- | :---: | :---: | :--- |
-| **Free Demo** | Starter Access | `$0` *(25 read-only calls/mo)* | `github-mcp-lite` (`$0`) | Free read-only trial tier |
-| **Individual Pro** *(This Repo)* | **`artifact-registry-mcp`** | **`$19/mo`** *(`pawangunjkar-artifact-registry-mcp`)* | `artifact-registry-mcp-pro` (`$19`) | All **12 Nexus 3 & Artifactory supply-chain tools** + 4 attestation playbooks |
-| **3-in-1 Bundle** | **Enterprise CI/CD & Binary Release** *(Saves 32%)* | **`$39/mo`** *(`pawangunjkar-bundle-enterprise-release-mcp`)* | Bundle 2 (`$39`) | `jenkins-mcp` (53) + `artifact-registry-mcp` (12) + `k8s-mcp` (23) = **88 tools** |
-| **3-in-1 Bundles** | **Cloud-Native DevOps** \| **SRE Incident Triage** | **`$39/mo`** each | Bundle 1 \| Bundle 3 (`$39`) | `github+k8s+obs` (118 tools) \| `k8s+obs+linux-ssh` (100 tools) |
-| **6-in-1 Master Suite** | **Enterprise SDLC Orchestrator** *(Saves 37%)* | **`$69/mo`** *(`pawangunjkar-enterprise-sdlc-suite`)* | `enterprise-sdlc-orchestrator` (`$69`) | **All 6 MCP servers unified (245 tools)** + end-to-end SDLC/SRE workflows |
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![MCP Protocol](https://img.shields.io/badge/protocol-MCP-green.svg)](https://modelcontextprotocol.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## Project Information
+## Overview
 
-| Item | Value |
-| --- | --- |
-| Package | `artifact-registry-mcp` |
-| CLI Entrypoint | `artifact-mcp`, `artifact-registry-mcp` |
-| Runtime | Python 3.10+, FastMCP, stdio, httpx, pydantic |
-| Supported Registries | Sonatype Nexus Repository 3, JFrog Artifactory |
-| Supported Formats | `maven2`, `docker`/OCI, `npm`, `pypi`, `helm`, `raw`/`generic` |
-| Security Model | Multi-session credential caching, Confirmation-gated mutations |
-| Sibling MCPs | [github-mcp](https://github.com/Pawangunjkar/github-mcp), [jenkins-mcp](https://github.com/Pawangunjkar/jenkins-mcp), [k8s-mcp](https://github.com/Pawangunjkar/k8s-mcp), [observability-mcp](https://github.com/Pawangunjkar/observability-mcp) |
+**Artifact Registry MCP Server** gives AI assistants direct read, attestation, and gated release-promotion control over **Sonatype Nexus 3** and **JFrog Artifactory**.
+
+- **Dual registry support:** Unified tool surface across Nexus Repository 3 and JFrog Artifactory (`ARTIFACT_REGISTRY_TYPE=nexus` or `artifactory`).
+- **Supply-chain attestation:** `artifact_verify_checksum_integrity` compares expected CI SHA-256 checksums against registry-stored checksums, and `artifact_get_docker_image_tags_and_digests` resolves immutable `sha256:...` digests before deployment.
+- **Confirmation-gated mutations:** Uploads, release promotions, and snapshot cleanups (`dry_run=true` by default) require explicit `confirm=true` after preview.
+- **Multi-session auth:** Supports named sessions and optional credential caching under `~/.artifact-mcp-cache`.
 
 ---
 
-## Architecture & Supply Chain Flow
+## Architecture & Supply-Chain Flow
 
 ```mermaid
 flowchart TB
   subgraph CI["Layer 1 — CI & Source Control"]
-    GH["github-mcp Actions"]
-    JK["jenkins-mcp Build Jobs"]
+    GH["GitHub Actions / CI"]
+    JK["Jenkins Build Jobs"]
   end
 
-  subgraph MCP["Layer 2 — Binary Supply Chain Control Plane"]
-    REG["artifact-registry-mcp"]
+  subgraph MCP["Layer 2 — Artifact Registry MCP"]
+    REG["artifact-registry-mcp (FastMCP)"]
     CS["CredentialStore (~/.artifact-mcp-cache)"]
     GATE["Confirmation Gate (confirm=true)"]
   end
 
-  subgraph BACKENDS["Layer 3 — Enterprise Registries"]
-    NEXUS["Sonatype Nexus Repository 3 (:8081)"]
-    JFROG["JFrog Artifactory (:8082)"]
+  subgraph BACKENDS["Layer 3 — Artifact Registries"]
+    NEXUS["Sonatype Nexus Repository 3"]
+    JFROG["JFrog Artifactory"]
   end
 
-  subgraph DEPLOY["Layer 4 — Deployment Runtime"]
-    K8S["k8s-mcp (OpenShift / EKS / AKS / GKE)"]
+  subgraph DEPLOY["Layer 4 — Deployment"]
+    K8S["Kubernetes / OpenShift (sha256 digest)"]
   end
 
   GH -->|"artifact_upload_binary"| REG
@@ -69,106 +54,93 @@ flowchart TB
   REG -->|"artifact_get_docker_image_tags_and_digests"| K8S
 ```
 
-```mermaid
-sequenceDiagram
-  autonumber
-  actor Agent as AI Coding Agent
-  participant CI as CI (jenkins-mcp / github-mcp)
-  participant MCP as artifact-registry-mcp
-  participant Reg as Nexus 3 / Artifactory
-  participant K8s as k8s-mcp
+---
 
-  Agent->>CI: Run build & tests (output jar/archive + SHA256)
-  CI-->>Agent: Build artifact + Expected SHA256
-  Agent->>MCP: artifact_upload_binary(confirm=true)
-  MCP->>Reg: Upload binary & compute remote SHA256
-  Reg-->>MCP: Remote checksum attestation
-  Agent->>MCP: artifact_verify_checksum_integrity(...)
-  MCP-->>Agent: ATTESTATION PASSED (Tamper-Free)
-  Agent->>MCP: artifact_promote_release(dev-local -> prod-release)
-  MCP->>Reg: Atomic copy / staging promotion
-  Agent->>MCP: artifact_get_docker_image_tags_and_digests(...)
-  MCP-->>Agent: Resolved immutable sha256:... digest
-  Agent->>K8s: k8s_update_deployment_image(image@sha256:...)
+## Project Layout
+
+```text
+artifact-registry-mcp/
+├── src/artifact_mcp/
+│   ├── __init__.py          # Package metadata
+│   ├── __main__.py          # `python -m artifact_mcp` entry point
+│   ├── server.py            # FastMCP server, 12 tools, /health, CLI transport
+│   ├── artifact_client.py   # Nexus 3 & Artifactory REST clients + SHA-256 helpers
+│   └── credential_store.py  # Session credential persistence
+├── tests/                   # Unit + httpx.MockTransport regression tests
+├── pyproject.toml           # Hatchling build config (`artifact-mcp`, `artifact-registry-mcp`)
+├── Dockerfile               # Streamable HTTP container
+└── mcpize.yaml              # Hosted HTTP runtime config
 ```
 
 ---
 
-## 12 Core Tools Reference
+## Tools Reference (12)
 
-### Connection & Session Management (5 Tools)
-| Tool | Access | Description |
-|------|--------|-------------|
-| `artifact_connect` | Read-only | Connect to Sonatype Nexus 3 or JFrog Artifactory and create a named session |
-| `artifact_status` | Read-only | Check connection health, version, authenticated user, and storage quota |
-| `artifact_disconnect` | Read-only | Disconnect an active session and close HTTP connections |
-| `artifact_list_sessions` | Read-only | List all active and cached registry sessions with masked credentials |
-| `artifact_save_credentials` | Read-only | Save connection credentials to local cache file |
+### Connection & Session Management (5)
 
-### Binary Discovery & Supply-Chain Attestation (4 Tools)
 | Tool | Access | Description |
-|------|--------|-------------|
-| `artifact_list_repositories` | Read-only | List repositories filtered by format (`maven2`, `docker`, `npm`, `pypi`, `helm`, `raw`) and type |
-| `artifact_search_binaries` | Read-only | Search components by name, group, version, or SHA256; returns URLs, timestamps, checksums |
-| `artifact_get_docker_image_tags_and_digests` | Read-only | Resolves immutable `sha256:...` container digest for handoff to `k8s-mcp` |
-| `artifact_verify_checksum_integrity` | Read-only | Compares expected SHA256 from CI against stored checksum before allowing deployment |
+|---|---|---|
+| `artifact_connect` | Read-only | Connect to Sonatype Nexus 3 or JFrog Artifactory and create a named session. |
+| `artifact_status` | Read-only | Check connection health, version, authenticated user, and storage quota. |
+| `artifact_disconnect` | Read-only | Disconnect an active session and close HTTP connections. |
+| `artifact_list_sessions` | Read-only | List active and cached registry sessions with masked credentials. |
+| `artifact_save_credentials` | Read-only | Save connection credentials to local cache file. |
 
-### Confirmation-Gated Mutating Tools (3 Tools)
+### Binary Discovery & Supply-Chain Attestation (4)
+
 | Tool | Access | Description |
-|------|--------|-------------|
-| `artifact_upload_binary` | **Confirm** (`confirm=true`) | Computes local SHA256, uploads file to registry, and verifies remote checksum match |
-| `artifact_promote_release` | **Confirm** (`confirm=true`) | Promotes immutable artifact from staging to release repository without rebuilding |
-| `artifact_cleanup_old_snapshots` | **Confirm** (`dry_run=false`, `confirm=true`) | Prunes stale snapshot builds beyond retention count (`dry_run=true` safe simulation) |
+|---|---|---|
+| `artifact_list_repositories` | Read-only | List repositories filtered by format (`maven2`, `docker`, `npm`, `pypi`, `helm`, `raw`) and type. |
+| `artifact_search_binaries` | Read-only | Search components by name, group, version, or SHA-256; returns URLs, timestamps, and checksums. |
+| `artifact_get_docker_image_tags_and_digests` | Read-only | Resolve immutable `sha256:...` container digest for deployment. |
+| `artifact_verify_checksum_integrity` | Read-only | Compare expected CI SHA-256 against the registry checksum before rollout. |
+
+### Confirmation-Gated Mutating Tools (3)
+
+| Tool | Access | Description |
+|---|---|---|
+| `artifact_upload_binary` | **Confirm** (`confirm=true`) | Compute local SHA-256, upload file, and verify remote checksum match. |
+| `artifact_promote_release` | **Confirm** (`confirm=true`) | Promote immutable artifact from staging to release repository without rebuilding. |
+| `artifact_cleanup_old_snapshots` | **Confirm** (`dry_run=false`, `confirm=true`) | Prune stale snapshot builds beyond retention count (`dry_run=true` simulates safely). |
 
 ---
 
-## Setup & Configuration
+## Installation & Configuration
+
+Requires **Python 3.10+** and [uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/Pawangunjkar/artifact-registry-mcp.git
+cd artifact-registry-mcp
+uv sync
+uv run artifact-registry-mcp
+```
 
 ### Environment Variables
-Configure the following environment variables (or let the agent prompt you via `artifact_connect`):
 
-```bash
-# Registry Type: "nexus" or "artifactory"
-export ARTIFACT_REGISTRY_TYPE=nexus
+| Variable | Default | Purpose |
+|---|---|---|
+| `ARTIFACT_REGISTRY_TYPE` | unset | `nexus` or `artifactory`. |
+| `ARTIFACT_REGISTRY_URL` | unset | Base URL of your Nexus or Artifactory instance. |
+| `ARTIFACT_REGISTRY_USER` | unset | Registry username or service account. |
+| `ARTIFACT_REGISTRY_TOKEN` | unset | API token, password, or access token. |
+| `ARTIFACT_REGISTRY_SSL_VERIFY` | `true` | Set to `false` for internal self-signed certificates. |
+| `ARTIFACT_REGISTRY_TIMEOUT` | `30` | HTTP timeout in seconds. |
+| `ARTIFACT_MCP_CACHE_DIR` | `~/.artifact-mcp-cache` | Session credential cache directory. |
 
-# Registry Base URL
-export ARTIFACT_REGISTRY_URL=http://localhost:8081
+### Cursor / Claude Code Setup
 
-# Credentials
-export ARTIFACT_REGISTRY_USER=admin
-export ARTIFACT_REGISTRY_TOKEN=your-token-or-password
-```
-
-### Cursor Setup (`.cursor/mcp.json`)
 ```json
 {
   "mcpServers": {
     "artifact-registry": {
-      "command": "uvx",
-      "args": ["artifact-registry-mcp"],
+      "command": "uv",
+      "args": ["run", "--directory", "/absolute/path/to/artifact-registry-mcp", "artifact-registry-mcp"],
       "env": {
-        "ARTIFACT_REGISTRY_TYPE": "${ARTIFACT_REGISTRY_TYPE}",
-        "ARTIFACT_REGISTRY_URL": "${ARTIFACT_REGISTRY_URL}",
-        "ARTIFACT_REGISTRY_USER": "${ARTIFACT_REGISTRY_USER}",
-        "ARTIFACT_REGISTRY_TOKEN": "${ARTIFACT_REGISTRY_TOKEN}"
-      }
-    }
-  }
-}
-```
-
-### Claude Code Setup (`.mcp.json`)
-```json
-{
-  "mcpServers": {
-    "artifact-registry": {
-      "command": "uvx",
-      "args": ["artifact-registry-mcp"],
-      "env": {
-        "ARTIFACT_REGISTRY_TYPE": "${ARTIFACT_REGISTRY_TYPE}",
-        "ARTIFACT_REGISTRY_URL": "${ARTIFACT_REGISTRY_URL}",
-        "ARTIFACT_REGISTRY_USER": "${ARTIFACT_REGISTRY_USER}",
-        "ARTIFACT_REGISTRY_TOKEN": "${ARTIFACT_REGISTRY_TOKEN}"
+        "ARTIFACT_REGISTRY_TYPE": "nexus",
+        "ARTIFACT_REGISTRY_URL": "http://localhost:8081",
+        "ARTIFACT_REGISTRY_USER": "admin",
+        "ARTIFACT_REGISTRY_TOKEN": "your-token-or-password"
       }
     }
   }
@@ -177,29 +149,17 @@ export ARTIFACT_REGISTRY_TOKEN=your-token-or-password
 
 ---
 
-## Testing & Quality Assurance
-
-Run the test suite:
+## Development & Tests
 
 ```bash
-uv run -m unittest discover tests
-```
-
-Build the Agensi skill package:
-
-```bash
-uv run python scripts/build_agensi_zip.py
-```
-
-Build distribution packages (wheel and sdist):
-
-```bash
+uv run python -m unittest discover -s tests -v
 uv build
 ```
 
 ---
 
-## License
+## Author & License
 
-MIT License. Copyright (c) 2026 Pawan Gunjkar.
+**Pawan Gunjkar** — pawangunjkar@gmail.com · [GitHub](https://github.com/Pawangunjkar)
 
+MIT License — see [LICENSE](LICENSE).

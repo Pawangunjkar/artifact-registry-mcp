@@ -18,18 +18,19 @@ from unittest import mock
 
 # Ensure parent directory is in sys.path
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 os.environ["ARTIFACT_DISABLE_AUTOCONNECT"] = "1"
 
-from artifact_client import (
+from artifact_mcp.artifact_client import (
     ArtifactClient,
     calculate_file_checksums,
     format_bytes,
 )
-from credential_store import CredentialStore, ArtifactCredentials
-from server import (
+from artifact_mcp.credential_store import CredentialStore, ArtifactCredentials
+from artifact_mcp.server import (
     mcp,
     artifact_connect,
     artifact_status,
@@ -140,8 +141,8 @@ class ArtifactToolLifecycleTests(unittest.TestCase):
         self.store = CredentialStore(cache_dir=self.temp_dir.name)
         self.client = ArtifactClient(credential_store=self.store)
 
-        import server
-        from artifact_client import ArtifactSession
+        from artifact_mcp import server
+        from artifact_mcp.artifact_client import ArtifactSession
         self.mock_session = ArtifactSession(
             name="default",
             registry_type="nexus",
@@ -153,7 +154,7 @@ class ArtifactToolLifecycleTests(unittest.TestCase):
         server._client._sessions["default"] = self.mock_session
 
     def tearDown(self):
-        import server
+        from artifact_mcp import server
         server._client._sessions.clear()
         self.temp_dir.cleanup()
 
@@ -210,7 +211,7 @@ class ArtifactToolLifecycleTests(unittest.TestCase):
         self.assertIn("Re-call with `confirm=true`", resp)
 
     def test_snapshot_cleanup_simulation_dry_run(self):
-        import server
+        from artifact_mcp import server
         with mock.patch.object(server._client, "cleanup_old_snapshots") as mock_cleanup:
             mock_cleanup.return_value = "### 🔍 Safe Snapshot Cleanup Simulation (`dry_run=True`)"
             resp = asyncio.run(artifact_cleanup_old_snapshots(
@@ -228,7 +229,7 @@ class ArtifactToolLifecycleTests(unittest.TestCase):
             registry_type="artifactory",
             base_url="http://artifactory:8082",
         )
-        with mock.patch("server._client", self.client):
+        with mock.patch("artifact_mcp.server._client", self.client):
             with mock.patch.object(self.client, "cleanup_old_snapshots") as mock_cleanup:
                 mock_cleanup.return_value = "🔒 Confirmation Required: Permanent Snapshot Deletion"
                 resp = asyncio.run(artifact_cleanup_old_snapshots(

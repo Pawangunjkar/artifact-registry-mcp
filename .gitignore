@@ -20,7 +20,7 @@ venv/
 .artifact-mcp-cache/
 credentials.json
 
-# Commercial Agensi Pro Skills (Proprietary - Do not commit)
+# Local helper scripts and skill build outputs
 agensi_build/
 
 # IDEs
@@ -28,14 +28,7 @@ agensi_build/
 .idea/
 .cursor/mcp.json
 
-# Skill packaging scripts (Proprietary - Do not commit)
 scripts/
 
-# Commercial Agensi Files & Distribution
-agensi_packages/
-_agensi_commercial_dist/
-_mcpize_bundles/
 dist/*.zip
 
-# MCPize CLI state
-.mcpize/

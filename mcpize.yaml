@@ -2,14 +2,14 @@ version: 1
 name: pawangunjkar-artifact-registry-mcp
 description: "Supply-chain Artifact Registry MCP server for Sonatype Nexus 3 and JFrog Artifactory with 12 tools: Maven/NPM/PyPI/Docker search, OCI image sha256 digest resolution, SHA256/SHA512 checksum attestation, binary upload, release promotion, and snapshot pruning."
 runtime: python
-entry: artifact_mcp/server.py
+entry: src/artifact_mcp/server.py
 
 build:
-  command: python -m py_compile server.py
+  command: pip install --no-deps . && python -m py_compile src/artifact_mcp/*.py
 
 startCommand:
   type: http
-  command: python -m artifact_mcp.server --http
+  command: python -m artifact_mcp --http
 
 credentials_mode: per_user
 credentials:
